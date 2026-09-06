@@ -1,7 +1,45 @@
+import {accountRouter} from './account.js';
+import {adminMarketplaceRouter,platformRouter} from './adminMarketplace.js';
 import {Router} from 'express';
+import {adminAnalyticsRouter} from './adminAnalytics.js';
+import {authRouter} from './auth.js';
+import {sellerApplicationRouter} from './sellerApplications.js';
+import {productRouter} from './products.js';
+import {adminUserRouter} from './adminUsers.js';
+import {reactivationRequestRouter} from './reactivationRequests.js';
+import {orderRouter} from './orders.js';
+import {reviewRouter} from './reviews.js';
+import {couponRouter} from './coupons.js';
+import {sellerAnalyticsRouter} from './sellerAnalytics.js';
+import {analyticsEventRouter} from './analyticsEvents.js';
+import {ppcCampaignRouter} from './ppcCampaigns.js';
+import {adminSystemAnalyticsRouter} from './adminSystemAnalytics.js';
+import {notificationRouter} from './notifications.js';
+import {reportRouter} from './reports.js';
+import {loadTestRouter} from './loadTests.js';
+import {env} from '../config/env.js';
 
 export const apiRouter=Router();
+apiRouter.use('/auth',authRouter);
+apiRouter.use('/account',accountRouter);
+apiRouter.use('/platform',platformRouter);
+apiRouter.use('/admin/marketplace',adminMarketplaceRouter);
+apiRouter.use('/seller-applications',sellerApplicationRouter);
+apiRouter.use('/products',productRouter);
+apiRouter.use('/admin/users',adminUserRouter);
+apiRouter.use('/admin/analytics',adminAnalyticsRouter);
+apiRouter.use('/admin/system-analytics',adminSystemAnalyticsRouter);
+apiRouter.use('/reactivation-requests',reactivationRequestRouter);
+apiRouter.use('/orders',orderRouter);
+apiRouter.use('/reviews',reviewRouter);
+apiRouter.use('/coupons',couponRouter);
+apiRouter.use('/seller/analytics',sellerAnalyticsRouter);
+apiRouter.use('/analytics/events',analyticsEventRouter);
+apiRouter.use('/seller/ppc-campaigns',ppcCampaignRouter);
+apiRouter.use('/notifications',notificationRouter);
+apiRouter.use('/reports',reportRouter);
+if(env.NODE_ENV!=='production')apiRouter.use('/admin/load-tests',loadTestRouter);
 
 apiRouter.get('/health',(_req,res)=>{
-  res.json({success:true,message:'BRACU Marketplace API is running',timestamp:new Date().toISOString()});
+  res.json({success:true,message:'B Market API is running',timestamp:new Date().toISOString()});
 });

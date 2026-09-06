@@ -1,0 +1,7 @@
+import type { FoodItem,User } from '../types';
+import { apiRequest } from './http';
+export type Profile=User&{phone:string;notificationPreference:'ALL'|'ORDERS'};
+export interface Platform {name:string;supportEmail:string;announcement:string}
+export const accountService={profile:()=>apiRequest<Profile>('/account/profile'),save:(input:Pick<Profile,'name'|'phone'|'notificationPreference'>)=>apiRequest<Profile>('/account/profile',{method:'PATCH',body:JSON.stringify(input)}),saved:()=>apiRequest<FoodItem[]>('/account/saved'),saveProduct:(id:string)=>apiRequest('/account/saved/'+id,{method:'PUT'}),unsaveProduct:(id:string)=>apiRequest('/account/saved/'+id,{method:'DELETE'})};
+export const platformService={get:()=>apiRequest<Platform>('/platform'),save:(input:Platform)=>apiRequest<Platform>('/platform',{method:'PATCH',body:JSON.stringify(input)})};
+export const marketplaceAdminService={overview:()=>apiRequest<{users:number;sellers:number;approvals:number;reports:number;sales:number;completedOrders:number}>('/admin/marketplace/overview'),products:(page:number,status:string,q:string)=>apiRequest<{items:(FoodItem&{removalReason?:string})[];total:number;totalPages:number}>('/admin/marketplace/products?'+new URLSearchParams({page:String(page),status,q})),remove:(id:string,reason:string)=>apiRequest('/admin/marketplace/products/'+id+'/remove',{method:'PATCH',body:JSON.stringify({reason})})};

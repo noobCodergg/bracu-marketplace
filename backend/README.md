@@ -1,4 +1,4 @@
-# BRACU Marketplace Backend
+# B Market Backend
 
 ## Setup
 

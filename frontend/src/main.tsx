@@ -1,3 +1,12 @@
-import React from 'react';import ReactDOM from 'react-dom/client';import {BrowserRouter} from 'react-router-dom';import {QueryClient,QueryClientProvider} from '@tanstack/react-query';import App from './App';import './index.css';
-const client=new QueryClient({defaultOptions:{queries:{staleTime:30_000,retry:1}}});
-ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><QueryClientProvider client={client}><BrowserRouter><App/></BrowserRouter></QueryClientProvider></React.StrictMode>);
+import { QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import { ToastViewport } from './components/ToastViewport';
+import { client } from './config/queryClient';
+import './index.css';
+import { useAuth } from './store/auth';
+void useAuth.getState().restore();
+window.setInterval(()=>{if(document.hidden||!navigator.onLine)return;const {user,restore}=useAuth.getState();if(user&&['SUSPENDED','FROZEN'].includes(user.status))void restore()},60000);
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><QueryClientProvider client={client}><BrowserRouter><App/><ToastViewport/></BrowserRouter></QueryClientProvider></React.StrictMode>);

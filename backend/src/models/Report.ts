@@ -1,0 +1,5 @@
+import {Schema,model} from 'mongoose';
+const reportSchema=new Schema({reporterId:{type:Schema.Types.ObjectId,ref:'User',required:true,index:true},reporter:{type:String,required:true,trim:true},targetId:{type:Schema.Types.ObjectId,required:true,index:true},target:{type:String,required:true,trim:true},type:{type:String,enum:['Seller','Buyer','Food'],required:true},reason:{type:String,required:true,trim:true,maxlength:1000},status:{type:String,enum:['OPEN','UNDER_REVIEW','RESOLVED','DISMISSED'],default:'OPEN',required:true,index:true},active:{type:Boolean,default:true,required:true},action:{type:String,enum:['UNDER_REVIEW','RESOLVE','DISMISS','WARN','SUSPEND','BAN','REMOVE']},moderatorId:{type:Schema.Types.ObjectId,ref:'User'},moderatorNote:{type:String,trim:true,maxlength:2000},restrictionEnds:{type:Date}},{timestamps:true});
+reportSchema.index({createdAt:-1});
+reportSchema.index({reporterId:1,targetId:1,type:1},{unique:true,partialFilterExpression:{active:true}});
+export const ReportModel=model('Report',reportSchema);
