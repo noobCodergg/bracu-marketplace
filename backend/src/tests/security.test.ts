@@ -17,7 +17,7 @@ test('cross-origin state changes are rejected before reaching a route',async()=>
 });
 
 test('trusted-origin state changes remain available',async()=>{
-  const response=await fetch(base+'/api/v1/auth/logout',{method:'POST',headers:{Origin:new URL(env.CLIENT_URL).origin,'Content-Type':'application/json'},body:'{}'});
+  const response=await fetch(base+'/api/v1/auth/logout',{method:'POST',headers:{Origin:new URL(env.CLIENT_URL).origin,'Sec-Fetch-Site':'cross-site','Content-Type':'application/json'},body:'{}'});
   assert.equal(response.status,200);
 });
 

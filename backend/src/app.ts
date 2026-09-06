@@ -9,7 +9,7 @@ import {systemTelemetry} from './middleware/systemTelemetry.js';
 import {apiRouter} from './routes/index.js';
 import {userRateLimiter} from './middleware/userRateLimiter.js';
 import {concurrencyGate} from './middleware/concurrencyGate.js';
-import {originGuard} from './middleware/originGuard.js';
+import {originGuard,trustedOrigins} from './middleware/originGuard.js';
 import {clearPublicResponseCache} from './middleware/publicResponseCache.js';
 
 export const app=express();
@@ -17,7 +17,7 @@ export const app=express();
 app.disable('x-powered-by');
 if(env.NODE_ENV==='production')app.set('trust proxy',env.TRUST_PROXY_HOPS);
 app.use(helmet());
-app.use(cors({origin:env.CLIENT_URL,credentials:true}));
+app.use(cors({origin:[...trustedOrigins],credentials:true}));
 app.use(systemTelemetry);
 app.use(cookieParser());
 app.use(userRateLimiter);
