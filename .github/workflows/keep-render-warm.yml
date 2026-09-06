@@ -16,7 +16,6 @@ jobs:
     steps:
       - name: Ping public health endpoint
         env:
-          HEALTH_URL: ${{ secrets.RENDER_HEALTH_URL }}
+          HEALTH_URL: https://bracu-marketplace-api.onrender.com/api/v1/health
         run: |
-          test -n "$HEALTH_URL" || { echo "Missing RENDER_HEALTH_URL repository secret"; exit 1; }
           curl --fail --silent --show-error --max-time 20 --retry 2 --retry-delay 3 "$HEALTH_URL"
