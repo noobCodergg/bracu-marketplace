@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: bracu-marketplace-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/v1/health
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_MAX_POOL_SIZE
+        value: "10"
+      - key: API_MAX_IN_FLIGHT
+        value: "40"
+      - key: API_MAX_QUEUE
+        value: "160"
+      - key: API_QUEUE_TIMEOUT_MS
+        value: "5000"
+      - key: AUTH_CACHE_TTL_MS
+        value: "30000"
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: ENABLE_REQUEST_DB_TELEMETRY
+        value: "false"
