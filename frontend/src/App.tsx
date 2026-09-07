@@ -34,6 +34,13 @@ const RealSellerAnalytics=lazy(()=>import('./pages/SellerAnalyticsPages').then(m
 const RealSellerDashboard=lazy(()=>import('./pages/SellerAnalyticsPages').then(module=>({default:module.RealSellerDashboard})));
 const RealFoodForm=lazy(()=>import('./pages/SellerProductForm').then(module=>({default:module.RealFoodForm})));
 const RealSellerProducts=lazy(()=>import('./pages/SellerProducts').then(module=>({default:module.RealSellerProducts})));
+function RouteExperience() {
+  const { pathname,search } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname,search]);
+  return null;
+}
 function Protected({ role }: { role: Role }) {
   const { user, ready } = useAuth(),
     loc = useLocation();
@@ -162,7 +169,7 @@ function SellerApplicationRoute() {
 }
 export default function App() {
   return (
-    <Suspense fallback={<div className="grid min-h-64 place-items-center">Loading...</div>}><Routes>
+    <Suspense fallback={<div className="grid min-h-64 place-items-center" aria-live="polite">Loading...</div>}><RouteExperience/><Routes>
       <Route
         path="/"
         element={

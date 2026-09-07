@@ -107,7 +107,7 @@ export function Home() {
           </div>
         </div>
       </section>
-      <section className="container-x py-20">
+      <section className="container-x py-12 sm:py-20">
         <div className="flex items-end justify-between">
           <div>
             <p className="font-bold text-brand-600">THE GOOD STUFF</p>
@@ -121,15 +121,15 @@ export function Home() {
           {isLoading ? (
             <Loading />
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
               {data?.slice(0, 4).map((f) => (
-                <FoodCard key={f.id} food={f} />
+                <FoodCard key={f.id} food={f} compactMobile />
               ))}
             </div>
           )}
         </div>
       </section>
-      <section className="bg-brand-50 py-20">
+      <section className="bg-brand-50 py-12 sm:py-20">
         <div className="container-x">
           <div className="flex items-end justify-between gap-4">
             <div>
@@ -147,9 +147,9 @@ export function Home() {
             {bestSellersLoading ? (
               <Loading cards={6} />
             ) : bestSellers.length ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
                 {bestSellers.map((product) => (
-                  <FoodCard key={product.id} food={product} />
+                  <FoodCard key={product.id} food={product} compactMobile />
                 ))}
               </div>
             ) : (

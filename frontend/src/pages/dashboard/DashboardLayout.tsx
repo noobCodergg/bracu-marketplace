@@ -77,12 +77,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     loc = useLocation(),
     [open, setOpen] = useState(false);
   const nav = useNavigate();
+  useEffect(()=>{
+    if(!open)return;
+    const previous=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    return()=>{document.body.style.overflow=previous};
+  },[open]);
   if (!user) return null;
   const base = `/${user.role.toLowerCase()}`;
   return (
     <div className="min-h-screen bg-stone-50">
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 border-r bg-white p-4 transition lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}
+        className={`mobile-drawer fixed inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col border-r bg-white p-4 shadow-2xl lg:w-72 lg:translate-x-0 lg:shadow-none ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="mb-8 flex items-center justify-between px-2">
           <button
@@ -111,7 +117,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </div>
-        <nav className="space-y-1">
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain pb-16">
           {menus[user.role].map((m) => {
             const Icon = m.icon;
             const to = m.path.startsWith("/") ? m.path : `${base}/${m.path}`;
@@ -135,7 +141,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <button
-          className="absolute bottom-5 left-5 flex items-center gap-2 text-sm font-bold text-red-600"
+          className="focus-ring mt-auto flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-red-600 hover:bg-red-50"
           onClick={() => {
             setUser(null);
             nav("/");
@@ -145,9 +151,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           Log out
         </button>
       </aside>
+      {open&&<button aria-label="Close dashboard navigation" className="fixed inset-0 z-40 bg-ink/35 backdrop-blur-[2px] lg:hidden" onClick={()=>setOpen(false)}/>}
       <main className="lg:pl-72">
         <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b bg-white/90 px-4 py-3 backdrop-blur sm:px-8">
-          <button onClick={() => setOpen(true)} className="lg:hidden">
+          <button aria-label="Open dashboard navigation" onClick={() => setOpen(true)} className="focus-ring grid h-11 w-11 place-items-center rounded-xl lg:hidden">
             <Menu />
           </button>
           <div>
@@ -170,7 +177,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <img src={user.avatar} className="h-9 w-9 rounded-xl" />
           </div>
         </header>
-        <div className="p-4 sm:p-8">
+        <div className="min-w-0 p-4 sm:p-6 lg:p-8">
           {["FROZEN", "SUSPENDED"].includes(user.status) && <RestrictionBanner />}
           {children}
         </div>

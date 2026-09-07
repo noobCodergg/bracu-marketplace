@@ -1,4 +1,42 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
 @tailwind base;@tailwind components;@tailwind utilities;
-@layer base{*{@apply border-stone-200}body{@apply m-0 bg-[#fffdf8] text-ink antialiased;font-family:'DM Sans',sans-serif}h1,h2,h3,h4{font-family:'Manrope',sans-serif}.focus-ring{@apply focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2}}
-@layer components{.container-x{@apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8}.card{@apply rounded-3xl border border-stone-200/80 bg-white shadow-[0_8px_30px_rgba(33,50,40,.06)]}.btn{@apply focus-ring inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition disabled:pointer-events-none disabled:opacity-50}.btn-primary{@apply btn bg-brand-600 text-white hover:bg-brand-700}.btn-secondary{@apply btn border bg-white hover:bg-stone-50}.field{@apply focus-ring w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm placeholder:text-stone-400}.label{@apply mb-1.5 block text-sm font-semibold}.badge{@apply inline-flex rounded-full px-2.5 py-1 text-xs font-bold}.section-title{@apply text-2xl font-extrabold tracking-tight sm:text-3xl}.skeleton{@apply animate-pulse rounded-2xl bg-stone-200}}
+@layer base{
+  *{@apply border-stone-200}
+  html{scroll-behavior:smooth;scroll-padding-top:5rem;-webkit-text-size-adjust:100%}
+  body{@apply m-0 min-w-0 overflow-x-hidden bg-[#fffdf8] text-ink antialiased;font-family:'DM Sans',sans-serif;min-height:100dvh}
+  h1,h2,h3,h4{font-family:'Manrope',sans-serif;text-wrap:balance}
+  img,svg{max-width:100%}
+  button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
+  button,a{touch-action:manipulation}
+  input,select,textarea{font-size:16px}
+  ::selection{@apply bg-brand-100 text-brand-700}
+  .focus-ring{@apply focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2}
+}
+@layer components{
+  .container-x{@apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8}
+  .card{@apply rounded-2xl border border-stone-200/80 bg-white shadow-[0_8px_30px_rgba(33,50,40,.06)] sm:rounded-3xl}
+  .btn{@apply focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200 ease-out disabled:pointer-events-none disabled:opacity-50 active:scale-[.98]}
+  .btn-primary{@apply btn bg-brand-600 text-white hover:bg-brand-700 hover:shadow-md}
+  .btn-secondary{@apply btn border bg-white hover:border-stone-300 hover:bg-stone-50}
+  .field{@apply focus-ring min-h-11 w-full rounded-xl border bg-white px-3.5 py-2.5 placeholder:text-stone-400 transition-[border-color,box-shadow,background-color] duration-200 ease-out}
+  .label{@apply mb-1.5 block text-sm font-semibold}
+  .badge{@apply inline-flex rounded-full px-2.5 py-1 text-xs font-bold}
+  .section-title{@apply text-2xl font-extrabold tracking-tight sm:text-3xl}
+  .skeleton{@apply animate-pulse rounded-2xl bg-stone-200}
+  .mobile-drawer{@apply transition-[transform,max-height,opacity,padding] duration-300 ease-out}
+  .surface-transition{@apply transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out}
+}
+@keyframes modal-in{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+.modal-backdrop{animation:fade-in .18s ease-out both}
+.modal-panel{animation:modal-in .22s cubic-bezier(.2,.8,.2,1) both}
+@media (max-width:639px){
+  h1{font-size:clamp(1.65rem,8vw,2.25rem)!important;line-height:1.15!important}
+  h2{line-height:1.2}
+  .card{scroll-margin-top:5rem}
+  table th,table td{white-space:nowrap}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}

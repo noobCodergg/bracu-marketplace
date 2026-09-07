@@ -6,7 +6,7 @@ ShoppingCart,
 UserCircle,
 X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect,useState } from "react";
 import { Link,NavLink } from "react-router-dom";
 import { useAuth } from "../store/auth";
 import { useCart } from "../store/cart";
@@ -24,6 +24,12 @@ export function Header() {
   const [open, setOpen] = useState(false),
     [marketOpen, setMarketOpen] = useState(false);
   const { user } = useAuth();
+  useEffect(()=>{
+    if(!open)return;
+    const previous=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    return()=>{document.body.style.overflow=previous};
+  },[open]);
   const links = [
     ["Home", "/"],
     ...(user?.role === "SELLER" ? [] : [["Become a Seller", "/become-seller"]]),
@@ -41,7 +47,7 @@ export function Header() {
     <>
       <header className="sticky top-0 z-40 border-b bg-[#fffdf8]/90 backdrop-blur-xl">
         <div className="container-x flex h-18 items-center justify-between py-3">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="focus-ring flex items-center gap-2 rounded-xl">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-600 text-white">
               <ShoppingBag />
             </span>
@@ -119,13 +125,17 @@ export function Header() {
           </div>
           <div className="flex items-center gap-2 sm:hidden">
             {user && <NotificationBell />}
-            <button className="p-2" onClick={() => setOpen(!open)}>
+            <Link to="/cart" aria-label={`Cart with ${cartCount} items`} className="focus-ring relative grid h-11 w-11 place-items-center rounded-xl border bg-white">
+              <ShoppingCart size={19}/>{cartCount>0&&<span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-white">{cartCount>99?'99+':cartCount}</span>}
+            </Link>
+            <button aria-label={open?'Close navigation':'Open navigation'} aria-expanded={open} className="focus-ring grid h-11 w-11 place-items-center rounded-xl" onClick={() => setOpen(!open)}>
               {open ? <X /> : <Menu />}
             </button>
           </div>
         </div>
-        {open && (
-          <div className="container-x border-t py-3 lg:hidden">
+        {open && <button aria-label="Close navigation" className="fixed inset-0 top-[4.5rem] z-40 bg-ink/20 backdrop-blur-[2px] sm:hidden" onClick={()=>setOpen(false)}/>}
+        <div className={`mobile-drawer relative z-50 overflow-hidden border-t bg-[#fffdf8] sm:hidden ${open?'max-h-[calc(100dvh-4.5rem)] overflow-y-auto py-3 opacity-100':'max-h-0 border-transparent py-0 opacity-0'}`}>
+          <div className="container-x">
             <Link
               onClick={() => setOpen(false)}
               className="block rounded-xl px-3 py-2 font-semibold hover:bg-stone-100"
@@ -176,8 +186,11 @@ export function Header() {
                 {n}
               </Link>
             ))}
+            <div className="mt-2 grid gap-2 border-t pt-3">
+              {user?<Link className="btn-primary" to={dash[user.role]}>Open dashboard</Link>:<Link className="btn-primary" to="/login">Login</Link>}
+            </div>
           </div>
-        )}
+        </div>
       </header>
     </>
   );

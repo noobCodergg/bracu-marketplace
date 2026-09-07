@@ -121,8 +121,8 @@ export function Foods() {
     if (ids.length) void analyticsTrackingService.browse(ids, "LISTING_IMPRESSION", debouncedQ).catch(() => undefined);
   }, [shown, debouncedQ, isFetching]);
   return (
-    <div className="container-x py-12">
-      <div className="rounded-[2rem] bg-ink px-6 py-10 text-white sm:px-10">
+    <div className="container-x py-6 sm:py-12">
+      <div className="rounded-2xl bg-ink px-4 py-6 text-white sm:rounded-[2rem] sm:px-10 sm:py-10">
         <p className="font-bold text-emerald-400">B MARKET</p>
         <h1 className="mt-2 text-4xl font-extrabold">
           What are you looking for?
@@ -140,29 +140,29 @@ export function Foods() {
           />
         </div>
       </div>
-      <div className="mt-8 grid gap-7 lg:grid-cols-[240px,1fr]">
-        <aside className="card h-fit p-5">
-          <h3 className="font-extrabold">Filters</h3>
-          <label className="label mt-5">Category</label>
-          <select
-            className="field"
-            value={cat}
-            onChange={(e) => {
-              setCat(e.target.value);
-              setSubcat("All");
-              setPage(1);
-            }}
-          >
-            <option>All</option>
-            {cats.map((c) => (
-              <option key={c[0]}>{c[0]}</option>
-            ))}
-          </select>
+      <div className="mt-4 grid gap-4 sm:mt-8 sm:gap-7 lg:grid-cols-[240px,1fr]">
+        <aside className="card grid h-fit grid-cols-2 gap-x-2 p-3 sm:block sm:p-5">
+          <h3 className="col-span-2 text-sm font-extrabold sm:text-base">Filters</h3>
+          <label className="mt-2 block sm:mt-5"><span className="label max-sm:text-xs">Category</span>
+            <select
+              className="field max-sm:min-h-8 max-sm:rounded-lg max-sm:px-2 max-sm:py-1 max-sm:text-xs"
+              value={cat}
+              onChange={(e) => {
+                setCat(e.target.value);
+                setSubcat("All");
+                setPage(1);
+              }}
+            >
+              <option>All</option>
+              {cats.map((c) => (
+                <option key={c[0]}>{c[0]}</option>
+              ))}
+            </select>
+          </label>
           {cat !== "All" && (
-            <>
-              <label className="label mt-5">Subcategory</label>
+            <label className="mt-2 block sm:mt-5"><span className="label max-sm:text-xs">Subcategory</span>
               <select
-                className="field"
+                className="field max-sm:min-h-8 max-sm:rounded-lg max-sm:px-2 max-sm:py-1 max-sm:text-xs"
                 value={subcat}
                 onChange={(e) => {
                   setSubcat(e.target.value);
@@ -174,27 +174,29 @@ export function Foods() {
                   <option key={item}>{item}</option>
                 ))}
               </select>
-            </>
+            </label>
           )}
-          <label className="label mt-5">Price range</label>
-          <input
-            type="range"
-            min={50}
-            max={5000}
-            step={50}
-            value={maxPrice}
-            onChange={(e) => {
-              setMaxPrice(Number(e.target.value));
-              setPage(1);
-            }}
-            className="w-full accent-emerald-600"
-          />
-          <div className="flex justify-between text-xs text-stone-500">
-            <span>৳50</span>
-            <span>Up to ৳{maxPrice.toLocaleString()}</span>
+          <div className="col-span-2 mt-2 sm:mt-5">
+            <label className="label max-sm:text-xs">Price range</label>
+            <input
+              type="range"
+              min={50}
+              max={5000}
+              step={50}
+              value={maxPrice}
+              onChange={(e) => {
+                setMaxPrice(Number(e.target.value));
+                setPage(1);
+              }}
+              className="h-4 w-full accent-emerald-600"
+            />
+            <div className="flex justify-between text-[10px] text-stone-500 sm:text-xs">
+              <span>৳50</span>
+              <span>Up to ৳{maxPrice.toLocaleString()}</span>
+            </div>
           </div>
-          <label className="label mt-5">Listing type</label>
-          <div className="mt-2 grid gap-2">
+          <div className="col-span-2 mt-2 sm:mt-5"><span className="label max-sm:text-xs">Listing type</span>
+          <div className="grid grid-cols-3 gap-1.5 sm:mt-2 sm:gap-2 lg:grid-cols-1">
             {(
               [
                 { label: "All products", value: "all" },
@@ -209,15 +211,16 @@ export function Foods() {
                   setSpecial(option.value);
                   setPage(1);
                 }}
-                className={`rounded-xl border px-3 py-2 text-left text-sm font-bold transition ${special === option.value ? "border-brand-600 bg-brand-50 text-brand-700" : "border-stone-200 hover:bg-stone-50"}`}
+                className={`rounded-lg border px-2 py-1.5 text-center text-[11px] font-bold transition sm:rounded-xl sm:px-3 sm:py-2 sm:text-left sm:text-sm ${special === option.value ? "border-brand-600 bg-brand-50 text-brand-700" : "border-stone-200 hover:bg-stone-50"}`}
               >
                 {option.label}
               </button>
             ))}
           </div>
+          </div>
         </aside>
         <main>
-          <div className="mb-5 flex items-center justify-between">
+          <div className="mb-3 flex items-center justify-between gap-2 sm:mb-5">
             <p className="text-sm text-stone-500">
               <b className="text-ink">{data?.total ?? shown.length}</b> products
               available
@@ -228,7 +231,7 @@ export function Foods() {
                 setSort(e.target.value);
                 setPage(1);
               }}
-              className="field w-auto"
+              className="field w-auto max-w-[10rem] max-sm:min-h-9 max-sm:py-1.5 max-sm:text-xs"
             >
               <option>Recommended</option>
               <option>Price low to high</option>
@@ -239,9 +242,9 @@ export function Foods() {
           {isLoading ? (
             <Loading />
           ) : shown.length ? (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
               {shown.map((f) => (
-                <FoodCard key={f.id} food={f} />
+                <FoodCard key={f.id} food={f} compactMobile />
               ))}
             </div>
           ) : (
