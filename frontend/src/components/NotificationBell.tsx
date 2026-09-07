@@ -3,16 +3,16 @@ import { Bell,CheckCheck } from 'lucide-react';
 import { useEffect,useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiConfig } from '../config/api';
-import { notificationService,orderService,type LiveNotification } from '../services';
+import { notificationService,orderService,pushService,type LiveNotification } from '../services';
 import { useAuth } from '../store/auth';
 import { toast } from '../store/toast';
 import { formatDateTime } from '../utils/dateTime';
 
 
 export function NotificationBell(){
-  const {user}=useAuth(),qc=useQueryClient(),nav=useNavigate(),[open,setOpen]=useState(false);
+  const {user}=useAuth(),qc=useQueryClient(),nav=useNavigate(),[open,setOpen]=useState(false),[pushPermission,setPushPermission]=useState(()=>pushService.permission());
   const {data=[]}=useQuery({queryKey:['notifications',user?.id],queryFn:notificationService.list,enabled:!!user,refetchInterval:document.hidden?false:120_000});
-  useEffect(()=>{if(!user)return;const stream=new EventSource(`${apiConfig.baseUrl}/notifications/stream`,{withCredentials:true});const receive=(event:MessageEvent)=>{const item=JSON.parse(event.data) as LiveNotification;toast.info(`${item.title}: ${item.message}`);qc.setQueryData<LiveNotification[]>(['notifications',user.id],current=>[item,...(current??[]).filter(existing=>existing.id!==item.id)].slice(0,50))};stream.addEventListener('notification',receive as EventListener);return()=>stream.close()},[qc,user]);
+  useEffect(()=>{if(!user)return;const stream=new EventSource(`${apiConfig.baseUrl}/notifications/stream`,{withCredentials:true});const receive=(event:MessageEvent)=>{const item=JSON.parse(event.data) as LiveNotification;toast.info(`${item.title}: ${item.message}`);qc.setQueryData<LiveNotification[]>(['notifications',user.id],current=>[item,...(current??[]).filter(existing=>existing.id!==item.id)].slice(0,50));if(['NEW_ORDER','ORDER_STATUS','EXTENSION_REQUEST','EXTENSION_DECISION'].includes(item.type))void qc.invalidateQueries({queryKey:['orders']})};stream.addEventListener('notification',receive as EventListener);return()=>stream.close()},[qc,user]);
   const read=useMutation({mutationFn:notificationService.read,meta:{silent:true},onSuccess:item=>qc.setQueryData<LiveNotification[]>(['notifications',user?.id],current=>current?.map(existing=>existing.id===item.id?item:existing))});
   const readAll=useMutation({mutationFn:notificationService.readAll,meta:{successMessage:'All notifications marked as read.'},onSuccess:()=>qc.setQueryData<LiveNotification[]>(['notifications',user?.id],current=>current?.map(item=>({...item,read:true})))});
   const decideExtension=useMutation({
@@ -24,6 +24,7 @@ export function NotificationBell(){
       void qc.invalidateQueries({queryKey:['orders']});
     },
   });
+  const enablePush=useMutation({mutationFn:pushService.enable,meta:{successMessage:'Order push notifications enabled.'},onSuccess:()=>setPushPermission('granted')});
   if(!user)return null;
   const unread=data.filter(item=>!item.read).length;
   const openItem=(item:LiveNotification)=>{if(!item.read)read.mutate(item.id);setOpen(false);if(item.link)nav(item.link)};
@@ -37,6 +38,7 @@ export function NotificationBell(){
         <div><b>Notifications</b><p className="text-xs text-stone-500">{unread} unread</p></div>
         {unread>0&&<button onClick={()=>readAll.mutate()} className="flex shrink-0 items-center gap-1 text-xs font-bold text-brand-700"><CheckCheck size={15}/>Mark all read</button>}
       </div>
+      {pushService.supported()&&pushPermission!=='granted'&&<div className="border-b bg-amber-50 p-3"><button disabled={enablePush.isPending||pushPermission==='denied'} onClick={()=>enablePush.mutate()} className="w-full rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{pushPermission==='denied'?'Push blocked in browser settings':enablePush.isPending?'Enabling...':'Enable order push notifications'}</button>{enablePush.isError&&<p className="mt-2 text-xs text-red-600">{enablePush.error.message}</p>}</div>}
       <div className="max-h-[calc(100dvh-10.5rem)] overflow-y-auto sm:max-h-96">
         {data.length?data.map(item=><div key={item.id} className={`border-b p-4 last:border-0 ${item.read?'':'bg-brand-50/70'}`}>
           <button className="block w-full text-left" onClick={()=>openItem(item)}>

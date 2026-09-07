@@ -5,4 +5,5 @@ export * from './company';
 export * from './notifications';
 export * from './orders';
 export * from './pricing';
+export * from './push';
 export * from './sellerAnalytics';

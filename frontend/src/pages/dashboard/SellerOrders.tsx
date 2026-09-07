@@ -121,7 +121,7 @@ export function SellerOrders() {
   const { data = [], isLoading } = useQuery({
     queryKey: ["orders"],
     queryFn: orderService.list,
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
   });
   const isFood = (order: Order) =>
     order.itemType ? order.itemType === "FOOD" : order.foodId.startsWith("f");

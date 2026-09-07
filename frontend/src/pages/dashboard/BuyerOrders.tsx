@@ -102,7 +102,7 @@ export function BuyerOrders() {
   const { data = [], isLoading } = useQuery({
     queryKey: ["orders"],
     queryFn: orderService.list,
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
   });
   const [cancel, setCancel] = useState<string | null>(null),
     [selected, setSelected] = useState<Order | null>(null);

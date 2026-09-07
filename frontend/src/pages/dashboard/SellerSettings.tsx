@@ -38,9 +38,19 @@ export function SellerSettings() {
   const mutation = useMutation({
     mutationFn: (value: boolean) =>
       sellerAvailabilityService.set(user!.id, value),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["seller-availability"] });
-      qc.invalidateQueries({ queryKey: ["cart-seller-availability"] });
+    onMutate: async (value) => {
+      await qc.cancelQueries({ queryKey: ["seller-availability", user?.id] });
+      const previous = qc.getQueryData<boolean>(["seller-availability", user?.id]);
+      qc.setQueryData(["seller-availability", user?.id], value);
+      return { previous };
+    },
+    onError: (_error, _value, context) => {
+      if (context?.previous !== undefined)
+        qc.setQueryData(["seller-availability", user?.id], context.previous);
+    },
+    onSuccess: (value) => {
+      qc.setQueryData(["seller-availability", user?.id], value);
+      void qc.invalidateQueries({ queryKey: ["cart-seller-availability"] });
     },
   });
   return (

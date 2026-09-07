@@ -1,6 +1,7 @@
 import type {Response} from 'express';
 import {NotificationModel} from '../models/Notification.js';
 import {UserModel} from '../models/User.js';
+import {sendOrderPush} from './webPush.js';
 
 type NotificationType='NEW_ORDER'|'ORDER_STATUS'|'EXTENSION_REQUEST'|'EXTENSION_DECISION'|'API_ABUSE'|'ACCOUNT_WARNING'|'APPLICATION_DECISION';
 type Input={type:NotificationType;title:string;message:string;link?:string;resourceId?:string};
@@ -19,6 +20,7 @@ export async function notifyUser(userId:unknown,input:Input,eventKey?:string){
   }
   const notification=eventKey?await NotificationModel.findOneAndUpdate({eventKey},{$setOnInsert:{userId:String(userId),...input}},{new:true,upsert:true}):await NotificationModel.create({userId:String(userId),...input});const payload=view(notification);
   for(const response of clients.get(String(userId))??[])response.write(`event: notification\ndata: ${JSON.stringify(payload)}\n\n`);
+  if(['NEW_ORDER','ORDER_STATUS','EXTENSION_REQUEST','EXTENSION_DECISION'].includes(input.type))void sendOrderPush(userId,input).catch(error=>console.error('Web push delivery failed',error));
   return payload;
 }
 

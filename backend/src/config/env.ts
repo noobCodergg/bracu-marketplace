@@ -19,6 +19,9 @@ const envSchema=z.object({
   ADMIN_EMAIL:z.string().email().optional(),
   ADMIN_PASSWORD:z.string().min(12).max(72).optional(),
   ADMIN_NAME:z.string().min(2).default('Platform Admin')
+  ,VAPID_PUBLIC_KEY:z.string().optional()
+  ,VAPID_PRIVATE_KEY:z.string().optional()
+  ,VAPID_SUBJECT:z.string().default('mailto:admin@example.com')
 }).superRefine((value,ctx)=>{
   if(value.NODE_ENV==='production'&&value.JWT_SECRET===unsafeDevelopmentSecret)ctx.addIssue({code:'custom',path:['JWT_SECRET'],message:'A strong unique JWT_SECRET is required in production'});
 });

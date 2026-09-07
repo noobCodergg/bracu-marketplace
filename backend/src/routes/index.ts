@@ -19,6 +19,7 @@ import {notificationRouter} from './notifications.js';
 import {reportRouter} from './reports.js';
 import {loadTestRouter} from './loadTests.js';
 import {env} from '../config/env.js';
+import {pushRouter} from './push.js';
 
 export const apiRouter=Router();
 apiRouter.use('/auth',authRouter);
@@ -38,6 +39,7 @@ apiRouter.use('/seller/analytics',sellerAnalyticsRouter);
 apiRouter.use('/analytics/events',analyticsEventRouter);
 apiRouter.use('/seller/ppc-campaigns',ppcCampaignRouter);
 apiRouter.use('/notifications',notificationRouter);
+apiRouter.use('/push',pushRouter);
 apiRouter.use('/reports',reportRouter);
 if(env.NODE_ENV!=='production')apiRouter.use('/admin/load-tests',loadTestRouter);
 
