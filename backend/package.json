@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "seed:admin": "tsx src/scripts/seedAdmin.ts",
     "seed:marketplace": "tsx src/scripts/seedMarketplace.ts",
-    "test": "npm run build && node --test dist/services/companyAnalytics.test.js dist/middleware/concurrencyGate.test.js dist/middleware/publicResponseCache.test.js dist/tests/security.test.js dist/tests/platform.test.js"
+    "test": "npm run build && node --test dist/services/companyAnalytics.test.js dist/services/loginProtection.test.js dist/middleware/concurrencyGate.test.js dist/middleware/publicResponseCache.test.js dist/tests/security.test.js dist/tests/platform.test.js"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",

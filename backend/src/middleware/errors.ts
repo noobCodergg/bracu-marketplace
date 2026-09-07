@@ -14,6 +14,7 @@ export const errorHandler:ErrorRequestHandler=(error,_req,res,_next)=>{
   if(error instanceof mongoose.Error.CastError){res.status(400).json({success:false,message:'Invalid identifier or field value'});return}
   if(error instanceof mongoose.Error.ValidationError){res.status(400).json({success:false,message:'Validation failed',errors:{fieldErrors:Object.fromEntries(Object.entries(error.errors).map(([key,value])=>[key,[value.message]]))}});return}
   if(error?.code===11000){res.status(409).json({success:false,message:'This record already exists'});return}
+  if(error?.type==='entity.too.large'||error?.status===413){res.status(413).json({success:false,message:'Request payload is too large'});return}
   if(error?.type==='entity.parse.failed'){res.status(400).json({success:false,message:'Invalid JSON request'});return}
   console.error('Unhandled request error',error);
   res.status(500).json({success:false,message:'Unable to complete the request. Please try again.'});

@@ -26,3 +26,8 @@ test('legacy token without pinned issuer and audience is rejected',async()=>{
   const response=await fetch(base+'/api/v1/auth/me',{headers:{Cookie:`session=${token}`}});
   assert.equal(response.status,401);
 });
+
+test('oversized JSON payloads return 413 instead of a server error',async()=>{
+  const response=await fetch(base+'/api/v1/auth/login',{method:'POST',headers:{Origin:new URL(env.CLIENT_URL).origin,'Content-Type':'application/json'},body:JSON.stringify({email:'oversized@example.com',password:'A'.repeat(1_100_000)})});
+  assert.equal(response.status,413);
+});

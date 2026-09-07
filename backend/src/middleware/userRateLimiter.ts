@@ -7,6 +7,7 @@ const WINDOW_MS = 1000,
   DEFAULT_LIMIT = 20,
   AUTH_LIMIT = 5,
   ANALYTICS_LIMIT = 2,
+  AUTH_GLOBAL_LIMIT = 40,
   IP_BURST_LIMIT = 200,
   MAX_KEYS = 10000;
 type Window={startedAt:number;count:number};
@@ -47,6 +48,11 @@ export const userRateLimiter: RequestHandler = (req, res, next) => {
   const actor = identity(req,path),ip=req.ip||req.socket.remoteAddress||'unknown';
   const now = Date.now(),
     key = `${actor}:${req.method}:${path}`;
+  if(path.startsWith('/api/v1/auth/')){
+    const globalKey=`auth-global:${req.method}:${path}`,globalWindow=windows.get(globalKey);
+    if(globalWindow&&now-globalWindow.startedAt<WINDOW_MS&&globalWindow.count>=AUTH_GLOBAL_LIMIT){res.setHeader('Retry-After','1');res.status(429).json({success:false,message:'Authentication service is busy. Try again shortly.'});return}
+    if(!globalWindow||now-globalWindow.startedAt>=WINDOW_MS)windows.set(globalKey,{startedAt:now,count:1});else globalWindow.count+=1;
+  }
   const ipKey=`ip-burst:${ip}`,ipWindow=windows.get(ipKey);
   if(ipWindow&&now-ipWindow.startedAt<WINDOW_MS&&ipWindow.count>=IP_BURST_LIMIT){res.setHeader('Retry-After','1');res.status(429).json({success:false,message:'Too many requests from this network. Try again shortly.'});return}
   if(!ipWindow||now-ipWindow.startedAt>=WINDOW_MS)windows.set(ipKey,{startedAt:now,count:1});else ipWindow.count+=1;
