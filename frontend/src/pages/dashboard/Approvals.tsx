@@ -15,6 +15,7 @@ import {
 adminService,
 reactivationService
 } from "../../services";
+import { formatDate } from "../../utils/dateTime";
 
 function PageTitle({
   title,
@@ -149,7 +150,7 @@ export function Approvals() {
                     <Badge tone="purple">{request.accountStatus}</Badge>
                   </div>
                   <p className="mt-1 text-sm text-stone-500">
-                    {request.role} · Requested {request.date}
+                    {request.role} · Requested {formatDate(request.date)}
                   </p>
                   <p className="mt-3 rounded-xl bg-stone-50 p-3 text-sm">
                     {request.reason}
@@ -234,7 +235,7 @@ export function Approvals() {
                 <dt className="text-xs font-bold uppercase tracking-wide text-stone-400">
                   Submitted
                 </dt>
-                <dd className="mt-1 font-semibold">{selected.date}</dd>
+                <dd className="mt-1 font-semibold">{formatDate(selected.date)}</dd>
               </div>
             </dl>
             <div className="mt-5">

@@ -6,7 +6,7 @@ import {notifyUser} from './notifications.js';
 export async function deliverOrderNotifications(){
  const orders=await OrderModel.find({'notificationEvents.0':{$exists:true}}).select('notificationEvents').limit(50);
  for(const order of orders)for(const event of order.notificationEvents){
-  await notifyUser(event.userId,{type:event.type as Parameters<typeof notifyUser>[1]['type'],title:event.title,message:event.message,link:event.link??undefined},`${order._id}:${event._id}`);
+  await notifyUser(event.userId,{type:event.type as Parameters<typeof notifyUser>[1]['type'],title:event.title,message:event.message,link:event.link??undefined,resourceId:event.resourceId?String(event.resourceId):undefined},`${order._id}:${event._id}`);
   await OrderModel.updateOne({_id:order._id},{$pull:{notificationEvents:{_id:event._id}}});
  }
 }

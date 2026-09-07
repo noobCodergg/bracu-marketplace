@@ -7,7 +7,8 @@ import { analyticsTrackingService, couponService, foodService, orderService, rep
 import { regularPrice, sellingPrice } from '../services/pricing';
 import { useAuth } from '../store/auth';
 import { useCart } from '../store/cart';
-import type { Coupon } from '../types';
+import type { Coupon, Review } from '../types';
+import { formatDate } from '../utils/dateTime';
 const itemKey = (productId: string, variantId?: string) => `${productId}:${variantId ?? ''}`;
 export function RealProductDetails() {
     const { id = '' } = useParams();
@@ -20,7 +21,7 @@ export function RealProductDetails() {
     useEffect(() => { if (product?.id) void analyticsTrackingService.browse([product.id], 'PRODUCT_VIEW').catch(() => undefined); }, [product?.id]);
     const { data: reviews = [] } = useQuery({ queryKey: ['reviews', id], queryFn: () => reviewService.forFood(id), enabled: !!id });
     const activeReport = useQuery({ queryKey: ['active-product-report', user?.id, id], queryFn: () => reportService.activeProduct(id), enabled: !!user && !!id });
-    const review = useMutation({ meta: { successMessage: "Review submitted." }, mutationFn: () => reviewService.submit(id, { rating, comment }), onSuccess: () => { setComment(''); qc.invalidateQueries({ queryKey: ['reviews', id] }); qc.invalidateQueries({ queryKey: ['product', id] }); } });
+    const review = useMutation({ meta: { successMessage: "Review submitted." }, mutationFn: () => reviewService.submit(id, { rating, comment }), onSuccess: submitted => { setComment(''); qc.setQueryData<Review[]>(['reviews', id], current => [submitted, ...(current ?? []).filter(item => item.id !== submitted.id)]); qc.invalidateQueries({ queryKey: ['product', id] }); } });
     const report = useMutation({ meta: { successMessage: 'Product report submitted.' }, mutationFn: () => reportService.create({ targetId: id, type: 'Food', reason: reportReason }), onSuccess: () => { setReportOpen(false); setReportReason(''); void qc.invalidateQueries({ queryKey: ['active-product-report', user?.id, id] }); } });
     if (isLoading)
         return <div className="container-x py-16"><Loading cards={2}/></div>;
@@ -54,7 +55,7 @@ export function RealProductDetails() {
     </Modal>
     <section className="mt-14"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="font-bold text-brand-600">VERIFIED FEEDBACK</p><h2 className="mt-1 text-3xl font-extrabold">Ratings & reviews</h2><p className="text-sm text-stone-500">Each buyer can review this product once after a completed order.</p></div><div className="flex items-center gap-2 text-xl font-bold text-amber-500"><Star fill="currentColor"/> {product.rating || 'New'}</div></div>
       {user?.role === 'BUYER' && <div className="card mt-6 p-5"><h3 className="font-extrabold">Write your one-time review</h3><div className="mt-3 flex gap-1">{[1, 2, 3, 4, 5].map(value => <button key={value} onClick={() => setRating(value)}><Star className={value <= rating ? 'text-amber-500' : 'text-stone-300'} fill={value <= rating ? 'currentColor' : 'none'}/></button>)}</div><textarea className="field mt-4 min-h-24" value={comment} onChange={event => setComment(event.target.value)} placeholder="Share your experience..."/><Button className="mt-3" disabled={comment.trim().length < 3 || review.isPending} onClick={() => review.mutate()}>{review.isPending ? <Spinner /> : 'Submit review'}</Button>{review.isError && <p className="mt-3 text-sm font-semibold text-red-600">{(review.error as Error).message}</p>}{review.isSuccess && <p className="mt-3 font-semibold text-emerald-700">Review submitted.</p>}</div>}
-      <div className="mt-6 grid gap-4 md:grid-cols-2">{reviews.length ? reviews.map(item => <article className="card p-5" key={item.id}><div className="flex items-center gap-3"><img src={item.avatar} className="h-11 w-11 rounded-xl"/><div><b>{item.buyer}</b><p className="text-xs text-stone-500">Verified order · {item.date}</p></div><span className="ml-auto font-bold text-amber-500">{'★'.repeat(item.rating)}</span></div><p className="mt-4 text-sm text-stone-600">{item.comment}</p></article>) : <Empty title="No reviews yet" body="Completed buyers can leave the first verified review."/>}</div>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">{reviews.length ? reviews.map(item => <article className="card p-5" key={item.id}><div className="flex items-center gap-3"><img src={item.avatar} className="h-11 w-11 rounded-xl"/><div><b>{item.buyer}</b><p className="text-xs text-stone-500">Verified order · {formatDate(item.date)}</p></div><span className="ml-auto font-bold text-amber-500">{'★'.repeat(item.rating)}</span></div><p className="mt-4 text-sm text-stone-600">{item.comment}</p></article>) : <Empty title="No reviews yet" body="Completed buyers can leave the first verified review."/>}</div>
     </section>
   </div>;
 }

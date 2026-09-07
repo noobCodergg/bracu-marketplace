@@ -13,7 +13,9 @@ export interface LiveNotification {
   title: string;
   message: string;
   link?: string;
+  resourceId?: string;
   read: boolean;
+  resolved: boolean;
   createdAt: string;
 }
 

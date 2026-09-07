@@ -9,7 +9,7 @@ const extensionSchema=new Schema({
 },{_id:false});
 
 const orderSchema=new Schema({
-  notificationEvents:{type:[new Schema({userId:{type:Schema.Types.ObjectId,required:true},type:{type:String,required:true},title:{type:String,required:true},message:{type:String,required:true},link:{type:String}})],default:[]},
+  notificationEvents:{type:[new Schema({userId:{type:Schema.Types.ObjectId,required:true},resourceId:{type:Schema.Types.ObjectId},type:{type:String,required:true},title:{type:String,required:true},message:{type:String,required:true},link:{type:String}})],default:[]},
   idempotencyKey:{type:String},requestHash:{type:String},
   buyerId:{type:Schema.Types.ObjectId,ref:'User',required:true,index:true},
   sellerId:{type:Schema.Types.ObjectId,ref:'User',required:true,index:true},

@@ -17,6 +17,7 @@ orderService
 } from "../../services";
 import { useAuth } from "../../store/auth";
 import type { Order } from "../../types";
+import { formatDate, formatTime } from "../../utils/dateTime";
 
 function Stat({
   name,
@@ -177,7 +178,7 @@ function OrderRow({
       <div className="text-sm">
         <b>৳{order.total}</b>
         <p className="text-xs text-stone-500">
-          {order.deliveryDate} · {order.deliveryTime}
+          {formatDate(order.deliveryDate)} · {formatTime(order.deliveryTime)}
         </p>
       </div>
       <Badge tone={tone(order.status)}>

@@ -13,6 +13,7 @@ import {
 orderService
 } from "../../services";
 import type { Order } from "../../types";
+import { formatDate, formatTime } from "../../utils/dateTime";
 
 function PageTitle({
   title,
@@ -77,19 +78,11 @@ function OrderRow({
         <p className="text-xs text-stone-500">
           {order.id} · {order.seller} · Qty {order.quantity}
         </p>
-        {order.extension && (
-          <p
-            className={`mt-1 text-xs font-bold ${order.extension.status === "APPROVED" ? "text-emerald-700" : order.extension.status === "REJECTED" ? "text-red-600" : "text-amber-700"}`}
-          >
-            Time extension: {order.extension.minutes} min ·{" "}
-            {order.extension.status.replaceAll("_", " ")}
-          </p>
-        )}
       </div>
       <div className="text-sm">
         <b>৳{order.total}</b>
         <p className="text-xs text-stone-500">
-          {order.deliveryDate} · {order.deliveryTime}
+          {formatDate(order.deliveryDate)} · {formatTime(order.deliveryTime)}
         </p>
       </div>
       <Badge tone={tone(order.status)}>
@@ -118,14 +111,6 @@ export function BuyerOrders() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["orders"] });
       setCancel(null);
-    },
-  });
-  const extensionDecision = useMutation({meta:{successMessage:"Order updated successfully."},
-    mutationFn: (decision: "APPROVED" | "REJECTED") =>
-      orderService.decideExtension(selected!.id, decision),
-    onSuccess: (order) => {
-      qc.invalidateQueries({ queryKey: ["orders"] });
-      setSelected({ ...order });
     },
   });
   const shown = data.filter(
@@ -204,13 +189,13 @@ export function BuyerOrders() {
                 <dt className="text-xs font-bold uppercase text-stone-400">
                   Delivery date
                 </dt>
-                <dd className="mt-1 font-semibold">{selected.deliveryDate}</dd>
+                <dd className="mt-1 font-semibold">{formatDate(selected.deliveryDate)}</dd>
               </div>
               <div>
                 <dt className="text-xs font-bold uppercase text-stone-400">
                   Delivery time
                 </dt>
-                <dd className="mt-1 font-semibold">{selected.deliveryTime}</dd>
+                <dd className="mt-1 font-semibold">{formatTime(selected.deliveryTime)}</dd>
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-xs font-bold uppercase text-stone-400">
@@ -244,63 +229,6 @@ export function BuyerOrders() {
                 </dd>
               </div>
             </dl>
-            {selected.extension && (
-              <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-extrabold text-amber-950">
-                      Delivery time extension
-                    </p>
-                    <p className="mt-1 text-sm text-amber-800">
-                      Seller requested {selected.extension.minutes} extra
-                      minutes.
-                    </p>
-                  </div>
-                  <Badge
-                    tone={
-                      selected.extension.status === "APPROVED"
-                        ? "green"
-                        : selected.extension.status === "REJECTED"
-                          ? "red"
-                          : "amber"
-                    }
-                  >
-                    {selected.extension.status}
-                  </Badge>
-                </div>
-                <p className="mt-3 text-sm text-stone-600">
-                  {selected.extension.reason}
-                </p>
-                {selected.extension.status === "PENDING" && (
-                  <div className="mt-4 flex gap-2">
-                    <Button
-                      disabled={extensionDecision.isPending}
-                      onClick={() => extensionDecision.mutate("APPROVED")}
-                    >
-                      Approve new time
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      disabled={extensionDecision.isPending}
-                      onClick={() => extensionDecision.mutate("REJECTED")}
-                    >
-                      Reject
-                    </Button>
-                  </div>
-                )}
-                {selected.extension.status === "APPROVED" && (
-                  <p className="mt-3 text-sm font-semibold text-green-700">
-                    New deadline: {selected.deliveryDate} at{" "}
-                    {selected.deliveryTime}
-                  </p>
-                )}
-                {selected.extension.status === "REJECTED" && (
-                  <p className="mt-3 text-sm font-semibold text-red-700">
-                    The original delivery deadline remains unchanged.
-                  </p>
-                )}
-              </div>
-            )}
             <div className="mt-6 flex justify-between border-t pt-5">
               <b>Order total</b>
               <span className="text-xl font-extrabold">৳{selected.total}</span>

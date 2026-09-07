@@ -3,11 +3,11 @@ import { Bell,CheckCheck } from 'lucide-react';
 import { useEffect,useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiConfig } from '../config/api';
-import { notificationService,type LiveNotification } from '../services';
+import { notificationService,orderService,type LiveNotification } from '../services';
 import { useAuth } from '../store/auth';
 import { toast } from '../store/toast';
+import { formatDateTime } from '../utils/dateTime';
 
-const relativeTime=(value:string)=>{const seconds=Math.max(1,Math.floor((Date.now()-new Date(value).getTime())/1000));if(seconds<60)return 'just now';if(seconds<3600)return `${Math.floor(seconds/60)}m ago`;if(seconds<86400)return `${Math.floor(seconds/3600)}h ago`;return `${Math.floor(seconds/86400)}d ago`};
 
 export function NotificationBell(){
   const {user}=useAuth(),qc=useQueryClient(),nav=useNavigate(),[open,setOpen]=useState(false);
@@ -15,6 +15,15 @@ export function NotificationBell(){
   useEffect(()=>{if(!user)return;const stream=new EventSource(`${apiConfig.baseUrl}/notifications/stream`,{withCredentials:true});const receive=(event:MessageEvent)=>{const item=JSON.parse(event.data) as LiveNotification;toast.info(`${item.title}: ${item.message}`);qc.setQueryData<LiveNotification[]>(['notifications',user.id],current=>[item,...(current??[]).filter(existing=>existing.id!==item.id)].slice(0,50))};stream.addEventListener('notification',receive as EventListener);return()=>stream.close()},[qc,user]);
   const read=useMutation({mutationFn:notificationService.read,meta:{silent:true},onSuccess:item=>qc.setQueryData<LiveNotification[]>(['notifications',user?.id],current=>current?.map(existing=>existing.id===item.id?item:existing))});
   const readAll=useMutation({mutationFn:notificationService.readAll,meta:{successMessage:'All notifications marked as read.'},onSuccess:()=>qc.setQueryData<LiveNotification[]>(['notifications',user?.id],current=>current?.map(item=>({...item,read:true})))});
+  const decideExtension=useMutation({
+    mutationFn:({orderId,decision}:{orderId:string;decision:'APPROVED'|'REJECTED'})=>orderService.decideExtension(orderId,decision),
+    meta:{successMessage:'Extension request updated.'},
+    onSuccess:(_order,variables)=>{
+      if(!user)return;
+      qc.setQueryData<LiveNotification[]>(['notifications',user.id],current=>current?.map(item=>item.resourceId===variables.orderId&&item.type==='EXTENSION_REQUEST'?{...item,resolved:true,read:true}:item));
+      void qc.invalidateQueries({queryKey:['orders']});
+    },
+  });
   if(!user)return null;
   const unread=data.filter(item=>!item.read).length;
   const openItem=(item:LiveNotification)=>{if(!item.read)read.mutate(item.id);setOpen(false);if(item.link)nav(item.link)};
@@ -29,12 +38,19 @@ export function NotificationBell(){
         {unread>0&&<button onClick={()=>readAll.mutate()} className="flex shrink-0 items-center gap-1 text-xs font-bold text-brand-700"><CheckCheck size={15}/>Mark all read</button>}
       </div>
       <div className="max-h-[calc(100dvh-10.5rem)] overflow-y-auto sm:max-h-96">
-        {data.length?data.map(item=><button key={item.id} onClick={()=>openItem(item)} className={`block w-full border-b p-4 text-left last:border-0 hover:bg-stone-50 ${item.read?'':'bg-brand-50/70'}`}>
-          <div className="flex gap-3">
-            {!item.read&&<span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-600"/>}
-            <div className="min-w-0 flex-1"><b className="block break-words text-sm">{item.title}</b><p className="mt-1 break-words text-xs leading-5 text-stone-600">{item.message}</p><small className="mt-1 block text-stone-400">{relativeTime(item.createdAt)}</small></div>
-          </div>
-        </button>):<p className="p-8 text-center text-sm text-stone-500">No notifications yet.</p>}
+        {data.length?data.map(item=><div key={item.id} className={`border-b p-4 last:border-0 ${item.read?'':'bg-brand-50/70'}`}>
+          <button className="block w-full text-left" onClick={()=>openItem(item)}>
+            <div className="flex gap-3">
+              {!item.read&&<span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-600"/>}
+              <div className="min-w-0 flex-1"><b className="block break-words text-sm">{item.title}</b><p className="mt-1 break-words text-xs leading-5 text-stone-600">{item.message}</p><small className="mt-1 block text-stone-400">{formatDateTime(item.createdAt)}</small></div>
+            </div>
+          </button>
+          {item.type==='EXTENSION_REQUEST'&&item.resourceId&&!item.resolved&&<div className="mt-3 flex gap-2 pl-5">
+            <button disabled={decideExtension.isPending} onClick={()=>decideExtension.mutate({orderId:item.resourceId!,decision:'APPROVED'})} className="rounded-lg bg-brand-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">Approve</button>
+            <button disabled={decideExtension.isPending} onClick={()=>decideExtension.mutate({orderId:item.resourceId!,decision:'REJECTED'})} className="rounded-lg border px-3 py-2 text-xs font-bold text-red-600 disabled:opacity-50">Reject</button>
+          </div>}
+          {item.type==='EXTENSION_REQUEST'&&item.resolved&&<p className="mt-2 pl-5 text-xs font-bold text-stone-500">Request handled</p>}
+        </div>):<p className="p-8 text-center text-sm text-stone-500">No notifications yet.</p>}
       </div>
     </div>}
   </div>;

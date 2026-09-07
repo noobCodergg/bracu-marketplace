@@ -10,6 +10,7 @@ Spinner
 import {
 adminService
 } from "../../services";
+import { formatDate } from "../../utils/dateTime";
 
 function PageTitle({
   title,
@@ -100,7 +101,7 @@ export function Reports() {
                   <td className="px-5 font-bold">{r.target}</td>
                   <td className="px-5">{r.type}</td>
                   <td className="px-5">{r.reason}</td>
-                  <td className="px-5">{r.date}</td>
+                  <td className="px-5">{formatDate(r.date)}</td>
                   <td className="px-5">
                     <Badge
                       tone={
@@ -180,7 +181,7 @@ export function Reports() {
                 <dt className="text-xs font-bold uppercase text-stone-400">
                   Reported on
                 </dt>
-                <dd className="mt-1 font-semibold">{selected.date}</dd>
+                <dd className="mt-1 font-semibold">{formatDate(selected.date)}</dd>
               </div>
             </dl>
             <label className="label mt-5">Moderation action</label>

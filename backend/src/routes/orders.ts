@@ -7,6 +7,7 @@ import { ProductModel } from "../models/Product.js";
 import { UserModel } from "../models/User.js";
 import { CouponModel } from "../models/Coupon.js";
 import { AnalyticsEventModel } from "../models/AnalyticsEvent.js";
+import { NotificationModel } from "../models/Notification.js";
 
 
 export const orderRouter = Router();
@@ -456,12 +457,12 @@ orderRouter.post(
           });
         return;
       }
-      if (order.extension?.status === "PENDING") {
+      if (order.extension) {
         res
           .status(409)
           .json({
             success: false,
-            message: "An extension request is already pending",
+            message: "A time extension has already been requested for this order",
           });
         return;
       }
@@ -470,7 +471,7 @@ orderRouter.post(
         status: "PENDING",
         requestedAt: new Date(),
       };
-      const updated=await OrderModel.findOneAndUpdate({_id:order._id,status:order.status,'extension.status':{$ne:'PENDING'}},{$set:{extension:order.extension},$push:{notificationEvents:{userId:order.buyerId,type:'EXTENSION_REQUEST',title:'Delivery extension requested',message:order.seller+' requested '+input.minutes+' extra minutes for '+order.food,link:'/buyer/orders'}}},{new:true});
+      const updated=await OrderModel.findOneAndUpdate({_id:order._id,status:order.status,extension:{$exists:false}},{$set:{extension:order.extension},$push:{notificationEvents:{userId:order.buyerId,resourceId:order._id,type:'EXTENSION_REQUEST',title:'Delivery extension requested',message:order.seller+' requested '+input.minutes+' extra minutes for '+order.food}}},{new:true});
       if(!updated){res.status(409).json({success:false,message:'Order changed. Refresh before requesting an extension.'});return}
 
       res.json({
@@ -520,6 +521,7 @@ orderRouter.patch("/:id/extension", async (req, res, next) => {
     }
     const updated=await OrderModel.findOneAndUpdate({_id:order._id,status:order.status,'extension.status':'PENDING','extension.requestedAt':order.extension.requestedAt},{$set:{extension:order.extension,allocatedDeliveryAt:order.allocatedDeliveryAt,deliveryDate:order.deliveryDate,deliveryTime:order.deliveryTime},$push:{notificationEvents:{userId:order.sellerId,type:'EXTENSION_DECISION',title:'Extension '+decision.toLowerCase(),message:order.food+': extension '+decision.toLowerCase(),link:'/seller/orders'}}},{new:true});
     if(!updated){res.status(409).json({success:false,message:'This extension was already handled or the order changed.'});return}
+    await NotificationModel.updateMany({userId:order.buyerId,resourceId:order._id,type:'EXTENSION_REQUEST',resolvedAt:null},{$set:{resolvedAt:new Date(),readAt:new Date()}});
 
     res.json({
       success: true,

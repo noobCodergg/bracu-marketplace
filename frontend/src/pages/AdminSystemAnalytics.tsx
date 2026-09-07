@@ -22,6 +22,7 @@ YAxis,
 } from "recharts";
 import { Badge,Button,Empty,Loading } from "../components/ui";
 import { loadTestService,systemAnalyticsService } from "../services";
+import { formatDateTime, formatTime } from "../utils/dateTime";
 
 const duration = (seconds: number) => {
   const days = Math.floor(seconds / 86400),
@@ -33,7 +34,7 @@ const duration = (seconds: number) => {
       ? `${hours}h ${minutes}m`
       : `${minutes}m`;
 };
-const time = (value: string) => new Date(value).toLocaleString();
+const time = formatDateTime;
 const methodTone = (method: string) =>
   method === "GET"
     ? "green"
@@ -259,10 +260,7 @@ export function AdminSystemAnalytics() {
   if (query.isLoading || !data) return <Loading />;
   const trafficChart = data.traffic.map((point) => ({
     ...point,
-    label: new Date(point.time).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    label: formatTime(point.time),
   }));
   return (
     <>

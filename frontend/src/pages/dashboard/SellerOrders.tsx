@@ -15,6 +15,7 @@ reportService
 } from "../../services";
 import { useAuth } from "../../store/auth";
 import type { Order,OrderStatus } from "../../types";
+import { formatDate, formatTime } from "../../utils/dateTime";
 
 function PageTitle({
   title,
@@ -91,7 +92,7 @@ function OrderRow({
       <div className="text-sm">
         <b>৳{order.total}</b>
         <p className="text-xs text-stone-500">
-          {order.deliveryDate} · {order.deliveryTime}
+          {formatDate(order.deliveryDate)} · {formatTime(order.deliveryTime)}
         </p>
       </div>
       <Badge tone={tone(order.status)}>
@@ -268,7 +269,7 @@ export function SellerOrders() {
                   </select>
                   {isFood(o) &&
                     ["ACCEPTED", "PREPARING"].includes(o.status) &&
-                    o.extension?.status !== "PENDING" && (
+                    !o.extension && (
                       <Button
                         variant="secondary"
                         onClick={() => setExtensionOrder(o)}
@@ -376,7 +377,7 @@ export function SellerOrders() {
                   Delivery date
                 </dt>
                 <dd className="mt-1 font-semibold">
-                  {selectedOrder.deliveryDate}
+                  {formatDate(selectedOrder.deliveryDate)}
                 </dd>
               </div>
               <div>
@@ -384,7 +385,7 @@ export function SellerOrders() {
                   Custom time
                 </dt>
                 <dd className="mt-1 font-semibold">
-                  {selectedOrder.deliveryTime}
+                  {formatTime(selectedOrder.deliveryTime)}
                 </dd>
               </div>
               <div className="sm:col-span-2">

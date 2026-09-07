@@ -11,6 +11,7 @@ import {
 couponService
 } from "../../services";
 import { useAuth } from "../../store/auth";
+import { formatDate } from "../../utils/dateTime";
 
 function PageTitle({
   title,
@@ -130,7 +131,7 @@ export function SellerCoupons() {
                   <div className="min-w-40 flex-1">
                     <code className="font-extrabold text-ink">{c.code}</code>
                     <p className="text-xs text-stone-500">
-                      {c.redemptions} redemptions · Created {c.createdAt}
+                      {c.redemptions} redemptions · Created {formatDate(c.createdAt)}
                     </p>
                   </div>
                   <Badge tone={c.active ? "green" : "gray"}>
