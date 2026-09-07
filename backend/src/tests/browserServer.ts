@@ -10,6 +10,7 @@ import {UserModel} from '../models/User.js';
 import {ProductModel} from '../models/Product.js';
 import {CompanyPaymentModel} from '../models/CompanyPayment.js';
 import {startOrderNotificationWorker} from '../services/orderNotifications.js';
+import {freezeInactiveSellers} from '../services/sellerInactivity.js';
 
 const databaseName='bracu_browser_'+randomUUID().replaceAll('-','');
 await mongoose.connect(env.MONGODB_URI,{dbName:databaseName});
@@ -19,7 +20,9 @@ const [seller]=await UserModel.create([
  {name:'Fixture Buyer',email:'buyer@browser.test',role:'BUYER',passwordHash},
  {name:'Fixture Admin',email:'admin@browser.test',role:'ADMIN',passwordHash},
  {name:'Other Seller',email:'other@browser.test',role:'SELLER',passwordHash},
+ {name:'Frozen Seller',email:'frozen@browser.test',role:'SELLER',status:'ACTIVE',sellerActivityAt:new Date(Date.now()-11*24*60*60*1000),passwordHash},
 ]);
+await freezeInactiveSellers();
 await ProductModel.create(Array.from({length:6},(_,index)=>({sellerId:seller!._id,seller:'Fixture Seller',name:`Campus Notebook ${index+1}`,description:'A durable campus notebook for everyday class notes and study.',category:'Stationery',subcategory:'Notebooks',price:80+index*20,quantity:10,status:'ACTIVE' as const,images:['https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500'],variants:[{price:100+index*20,discountPrice:80+index*20,costPrice:50,packagingCost:5,otherCost:0,quantity:10}],prepMinutes:0,spicy:0})));
 await CompanyPaymentModel.create({reference:`browser-premium-${databaseName}`,buyerEmail:seller!.email,product:'PREMIUM_ANALYTICS',amount:499,status:'SUCCEEDED',currency:'BDT',directCost:0,paidAt:new Date(),userId:seller!._id});
 const harness=express(),stopWorker=startOrderNotificationWorker();let closing=false;

@@ -21,14 +21,22 @@ test.describe.serial('human marketplace and order journey',()=>{
     await page.goto('/foods');
     await page.getByPlaceholder('Search products, sellers, categories...').fill('Notebook');
     await expect(page.getByText('Campus Notebook 1',{exact:true})).toBeVisible();
+    const discountedCard=page.locator('article').filter({hasText:'Campus Notebook 1'});
+    await expect(discountedCard.getByText('৳80',{exact:true})).toBeVisible();
+    const originalCardPrice=discountedCard.getByText('৳100',{exact:true});
+    await expect(originalCardPrice).toBeVisible();
+    await expect(originalCardPrice).toHaveCSS('text-decoration-line','line-through');
     await page.getByLabel('Category').selectOption('Stationery');
     await page.getByLabel('Subcategory').selectOption('Notebooks');
     const cards=page.locator('main article');
     await expect(cards.first()).toBeVisible();
     const columns=await cards.first().evaluate(element=>getComputedStyle(element.parentElement!).gridTemplateColumns.split(' ').length);
     expect(columns).toBe(3);
-    await cards.first().locator('a').click();
+    await discountedCard.locator('a').click();
     await expect(page.getByRole('button',{name:/Add selected variant/})).toBeVisible();
+    const purchasePanel=page.getByRole('complementary');
+    await expect(purchasePanel.getByText('৳80',{exact:true}).first()).toBeVisible();
+    await expect(purchasePanel.getByText('৳100',{exact:true}).first()).toHaveCSS('text-decoration-line','line-through');
     await context.close();
   });
 
@@ -108,5 +116,75 @@ test.describe.serial('human marketplace and order journey',()=>{
     for(const [path,heading] of [['/admin/users','User management'],['/admin/foods','Product inventory'],['/admin/analytics','Company earnings'],['/admin/system','System analytics']]){
       await page.goto(path);await expect(page.getByRole('heading',{name:heading,exact:false}).first()).toBeVisible();
     }
+  });
+
+  test('an admin suspends, reactivates, and bans an account',async({browser})=>{
+    test.setTimeout(60_000);
+    const seller=await browser.newContext({viewport:{width:390,height:844}}),sellerPage=await seller.newPage();
+    await login(sellerPage,'other@browser.test','/seller/dashboard');
+    const adminPage=adminContext!.pages()[0]!;
+    await adminPage.goto('/admin/users');
+    await adminPage.getByPlaceholder('Search name or email...').fill('other@browser.test');
+    let row=adminPage.getByRole('row').filter({hasText:'other@browser.test'});
+    await row.getByRole('button',{name:'Suspend',exact:true}).click();
+    let dialog=adminPage.getByRole('dialog');
+    await dialog.getByPlaceholder('Required moderation reason').fill('Human moderation flow test');
+    await dialog.locator('select').selectOption('1');
+    await dialog.getByRole('button',{name:'Confirm',exact:true}).click();
+    await expect(row.getByText('SUSPENDED',{exact:true})).toBeVisible();
+
+    await sellerPage.reload();
+    await expect(sellerPage).toHaveURL(/\/login/);
+    await login(sellerPage,'other@browser.test','/seller/dashboard');
+    await expect(sellerPage.getByRole('heading',{name:'Account suspended'})).toBeVisible();
+    await sellerPage.getByPlaceholder('Tell the admin why your account should be reactivated...').fill('I understand the rules and request account review.');
+    await sellerPage.getByRole('button',{name:'Request reactivation'}).click();
+    await expect(sellerPage.getByText(/application is pending/i)).toBeVisible();
+
+    await adminPage.goto('/admin/approvals');
+    const appeal=adminPage.getByText('Other Seller',{exact:true}).locator('xpath=ancestor::div[contains(@class,"card")]');
+    await appeal.getByRole('button',{name:'Approve & reactivate'}).click();
+    await adminPage.goto('/admin/users');
+    await adminPage.getByPlaceholder('Search name or email...').fill('other@browser.test');
+    row=adminPage.getByRole('row').filter({hasText:'other@browser.test'});
+    await expect(row.getByText('ACTIVE',{exact:true})).toBeVisible();
+
+    await row.getByRole('button',{name:'Ban',exact:true}).click();
+    dialog=adminPage.getByRole('dialog');
+    await dialog.getByPlaceholder('Required moderation reason').fill('Repeated marketplace policy violation');
+    await dialog.locator('select').selectOption('permanent');
+    await dialog.getByRole('button',{name:'Confirm',exact:true}).click();
+    await expect(row.getByText('BANNED',{exact:true})).toBeVisible();
+    await sellerPage.reload();
+    await expect(sellerPage).toHaveURL(/\/login/);
+    await sellerPage.getByLabel('Email').fill('other@browser.test');
+    await sellerPage.getByLabel('Password').fill(password);
+    await sellerPage.locator('form').getByRole('button',{name:'Sign in',exact:true}).click();
+    await expect(sellerPage.getByRole('main').getByText('This account is banned',{exact:true})).toBeVisible();
+    await seller.close();
+  });
+
+  test('a frozen seller sees the restriction and can appeal',async({browser})=>{
+    const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage();
+    await login(page,'frozen@browser.test','/seller/dashboard');
+    await expect(page.getByText('ACCOUNT IS FROZEN',{exact:true})).toBeVisible();
+    await expect(page.getByText('Your account is frozen.',{exact:true})).toBeVisible();
+    const blocked=await page.evaluate(async()=>{const response=await fetch('/api/v1/products',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'});return{status:response.status,body:await response.json()}});
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.message).toMatch(/restricted/i);
+    await page.getByRole('button',{name:'Apply for reactivation'}).click();
+    await page.getByPlaceholder('Write your appeal...').fill('Please review my automatically frozen seller account.');
+    await page.getByRole('dialog').getByRole('button',{name:'Submit appeal'}).click();
+    await expect(page.getByRole('button',{name:'Appeal pending'})).toBeDisabled();
+    const adminPage=adminContext!.pages()[0]!;
+    await adminPage.goto('/admin/approvals');
+    const appeal=adminPage.getByText('Frozen Seller',{exact:true}).locator('xpath=ancestor::div[contains(@class,"card")]');
+    await appeal.getByRole('button',{name:'Reject',exact:true}).click();
+    await page.reload();
+    await page.getByRole('button',{name:'Apply for reactivation'}).click();
+    await page.getByPlaceholder('Write your appeal...').fill('Trying again after rejection on the same day.');
+    await page.getByRole('dialog').getByRole('button',{name:'Submit appeal'}).click();
+    await expect(page.getByText(/one reactivation application per day/i).first()).toBeVisible();
+    await context.close();
   });
 });

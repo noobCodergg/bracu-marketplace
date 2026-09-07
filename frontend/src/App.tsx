@@ -55,10 +55,7 @@ function Protected({ role }: { role: Role }) {
     return <Navigate to={`/${user.role.toLowerCase()}/dashboard`} replace />;
   if (["BANNED", "REJECTED", "PENDING"].includes(user.status))
     return <StatusBlock />;
-  if (
-    user.status === "SUSPENDED" ||
-    (user.role === "SELLER" && user.status === "FROZEN")
-  )
+  if (user.status === "SUSPENDED")
     return <RestrictedAccount />;
   return (
     <DashboardLayout>

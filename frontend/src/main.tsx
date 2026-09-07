@@ -8,5 +8,5 @@ import { client } from './config/queryClient';
 import './index.css';
 import { useAuth } from './store/auth';
 void useAuth.getState().restore();
-window.setInterval(()=>{if(document.hidden||!navigator.onLine)return;const {user,restore}=useAuth.getState();if(user&&['SUSPENDED','FROZEN'].includes(user.status))void restore()},60000);
+window.setInterval(()=>{if(document.hidden||!navigator.onLine)return;const {user,restore}=useAuth.getState();if(user&&(user.role==='SELLER'||['SUSPENDED','FROZEN'].includes(user.status)))void restore()},60000);
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><QueryClientProvider client={client}><BrowserRouter><App/><ToastViewport/></BrowserRouter></QueryClientProvider></React.StrictMode>);

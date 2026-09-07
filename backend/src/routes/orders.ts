@@ -289,6 +289,7 @@ orderRouter.post(
           { _id: coupon._id },
           { $inc: { redemptions: 1 } },
         ).catch(error=>console.error("Coupon counter update failed",error));
+      await UserModel.updateOne({_id:product.sellerId,role:'SELLER'},{$set:{sellerActivityAt:new Date()}});
 
       res
         .status(201)
@@ -370,6 +371,7 @@ orderRouter.patch(
       const updated=await OrderModel.findOneAndUpdate({_id:order._id,status:order.status},{$set:{status,...(releaseInventory?{inventoryReserved:false}:{})},$push:{notificationEvents:{userId:order.buyerId,type:'ORDER_STATUS',title:'Order status updated',message:order.food+' is now '+status.toLowerCase(),link:'/buyer/orders'}}},{new:true,runValidators:true});
       if(!updated){res.status(409).json({success:false,message:'Order changed. Refresh before trying again.'});return}
       if(releaseInventory)await restoreInventory(order.productId,order.variantId,order.quantity)
+      await UserModel.updateOne({_id:req.authUser!.id,role:'SELLER'},{$set:{sellerActivityAt:new Date()}});
       order.status=updated.status;
 
       res.json({

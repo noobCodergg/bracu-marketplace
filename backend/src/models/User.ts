@@ -13,10 +13,13 @@ const userSchema=new Schema({
   avatar:{type:String,default:''},
   store:{type:String,trim:true},
   acceptingOrders:{type:Boolean,default:true},
+  sellerActivityAt:{type:Date},
   restrictionReason:{type:String,trim:true,maxlength:1000},
   restrictionEnds:{type:Date},
   tokenVersion:{type:Number,default:0,select:false}
 },{timestamps:true});
+
+userSchema.index({role:1,status:1,sellerActivityAt:1});
 
 export const UserModel=model('User',userSchema);
 

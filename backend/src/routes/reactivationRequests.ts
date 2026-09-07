@@ -47,7 +47,7 @@ reactivationRequestRouter.patch('/:id',requireAuth,requireRole('ADMIN'),async(re
   const user=await UserModel.findById(request.userId);
   if(!user){res.status(404).json({success:false,message:'User not found'});return}
   request.status=status;
-  if(status==='APPROVED'){user.status='ACTIVE';user.restrictionReason=undefined;user.restrictionEnds=undefined;await user.save();invalidateAuthCache(String(user._id))}
+  if(status==='APPROVED'){user.status='ACTIVE';user.restrictionReason=undefined;user.restrictionEnds=undefined;if(user.role==='SELLER')user.sellerActivityAt=new Date();await user.save();invalidateAuthCache(String(user._id))}
   await request.save();
   await notifyUser(request.userId,{type:'APPLICATION_DECISION',title:status==='APPROVED'?'Reactivation request approved':'Reactivation request rejected',message:status==='APPROVED'?'Your account has been reactivated.':'Your account reactivation request was rejected.',link:status==='APPROVED'?`/${user.role.toLowerCase()}/dashboard`:'/login'},`reactivation-request:${request._id}:${status}`);
   res.json({success:true,message:status==='APPROVED'?'Account reactivated':'Reactivation request rejected',data:view(request as never)});

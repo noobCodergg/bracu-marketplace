@@ -4,11 +4,13 @@ import {app} from './app.js';
 import {connectDatabase,disconnectDatabase} from './config/database.js';
 import {env} from './config/env.js';
 import {ensureAdmin} from './config/bootstrapAdmin.js';
+import {startSellerInactivityWorker} from './services/sellerInactivity.js';
 
 async function bootstrap(){
   await connectDatabase();
   await ensureAdmin();
   const stopNotifications=startOrderNotificationWorker();
+  const stopSellerInactivity=startSellerInactivityWorker();
   const server=createServer(app);
   server.keepAliveTimeout=65000;
   server.headersTimeout=66000;
@@ -19,6 +21,7 @@ async function bootstrap(){
   const shutdown=async(signal:string)=>{
     console.log(`${signal} received, shutting down`);
     stopNotifications();
+    stopSellerInactivity();
     const forceExit=setTimeout(()=>process.exit(1),10000);forceExit.unref();
     server.close(async()=>{
       clearTimeout(forceExit);

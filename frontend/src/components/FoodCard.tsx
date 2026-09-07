@@ -14,8 +14,33 @@ export function FoodCard({food,compactMobile=false}:{food:FoodItem;compactMobile
   const toggle=useMutation({mutationFn:()=>isSaved?accountService.unsaveProduct(food.id):accountService.saveProduct(food.id),meta:{successMessage:isSaved?'Product removed from saved items.':'Product saved.'},onSuccess:()=>qc.invalidateQueries({queryKey:['saved-products',user?.id]})});
   const closed=food.sellerAcceptingOrders===false;
   const compact=compactMobile?'max-sm:rounded-xl':'';
-  return <article className="relative min-w-0"><Link to={`/foods/${food.id}`} className={`card group block overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl ${compact}`}>
-    <div className={`relative overflow-hidden ${compactMobile?'h-24 sm:h-48':'h-48'}`}><img src={food.image} alt={food.name} loading="lazy" className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${closed?'opacity-60':''}`}/><div className={`absolute flex flex-col items-start ${compactMobile?'left-1.5 top-1.5 gap-1 sm:left-3 sm:top-3 sm:gap-2':'left-3 top-3 gap-2'}`}>{closed&&<span className={`badge bg-red-600 text-white ${compactMobile?'max-sm:hidden':''}`}>This seller is not taking orders</span>}{food.boosted&&<span className={`badge bg-amber-400 text-amber-950 ${compactMobile?'max-sm:px-1.5 max-sm:py-0.5 max-sm:text-[9px]':''}`}>✦ Featured</span>}{food.discountPrice&&<span className={`badge bg-red-500 text-white ${compactMobile?'max-sm:px-1.5 max-sm:py-0.5 max-sm:text-[9px]':''}`}>{Math.round((1-food.discountPrice/food.price)*100)}% OFF</span>}</div>
-    </div><div className={compactMobile?'p-2 sm:p-4':'p-4'}><div className={`flex items-start justify-between ${compactMobile?'mb-1 gap-1 sm:mb-2 sm:gap-3':'mb-2 gap-3'}`}><div className="min-w-0"><p className={`font-bold uppercase tracking-wider text-brand-600 ${compactMobile?'text-[9px] sm:text-xs':'text-xs'}`}>{food.category}</p><h3 className={`mt-1 overflow-hidden font-extrabold ${compactMobile?'line-clamp-2 min-h-8 text-[11px] leading-4 sm:min-h-0 sm:text-base sm:leading-normal':'text-base'}`}>{food.name}</h3></div><span className={`shrink-0 items-center gap-1 font-bold ${compactMobile?'hidden text-sm sm:flex':'flex text-sm'}`}><Star size={14} fill="#f4b740" className="text-amber-400"/>{food.rating}</span></div><p className={`text-stone-500 ${compactMobile?'hidden text-sm sm:block':'text-sm'}`}>by {food.seller}</p><div className={`flex items-center justify-between ${compactMobile?'mt-2 sm:mt-4':'mt-4'}`}><div className="min-w-0"><span className={compactMobile?'text-xs font-extrabold sm:text-lg':'text-lg font-extrabold'}>৳{food.discountPrice??food.price}</span>{food.discountPrice&&<span className={`ml-1 text-stone-400 line-through ${compactMobile?'hidden text-xs sm:inline':'text-xs'}`}>৳{food.price}</span>}</div><span className={`items-center gap-1 text-xs text-stone-500 ${compactMobile?'hidden sm:flex':'flex'}`}><Clock size={14}/>{food.prepMinutes} min</span></div><div className={`mt-3 flex-wrap gap-2 ${compactMobile?'hidden sm:flex':'flex'}`}><Badge tone={food.status==='ACTIVE'?'green':food.status==='PRE_ORDER_AVAILABLE'?'purple':food.status==='OUT_OF_STOCK'?'gray':'red'}>{food.status.replaceAll('_',' ')}</Badge>{closed&&<Badge tone="red">Orders closed</Badge>}</div></div>
-  </Link><button type="button" aria-label={isSaved?"Unsave product":"Save product"} aria-pressed={isSaved} disabled={toggle.isPending} className={`absolute rounded-full bg-white/90 shadow-sm ${compactMobile?'right-1.5 top-1.5 p-1.5 sm:right-3 sm:top-3 sm:p-2':'right-3 top-3 p-2'}`} onClick={()=>{if(!user){toast.info("Sign in to save products.");return}toggle.mutate()}}><Heart className={compactMobile?'h-3.5 w-3.5 sm:h-[17px] sm:w-[17px]':'h-[17px] w-[17px]'} fill={isSaved?"currentColor":"none"}/></button></article>;
+  const discounted=food.discountPrice!=null&&food.discountPrice<food.price;
+  return <article className="relative min-w-0">
+    <Link to={`/foods/${food.id}`} className={`card group block overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl ${compact}`}>
+      <div className={`relative overflow-hidden ${compactMobile?'h-24 sm:h-48':'h-48'}`}>
+        <img src={food.image} alt={food.name} loading="lazy" className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${closed?'opacity-60':''}`}/>
+        <div className={`absolute flex flex-col items-start ${compactMobile?'left-1.5 top-1.5 gap-1 sm:left-3 sm:top-3 sm:gap-2':'left-3 top-3 gap-2'}`}>
+          {closed&&<span className={`badge bg-red-600 text-white ${compactMobile?'max-sm:hidden':''}`}>This seller is not taking orders</span>}
+          {food.boosted&&<span className={`badge bg-amber-400 text-amber-950 ${compactMobile?'max-sm:px-1.5 max-sm:py-0.5 max-sm:text-[9px]':''}`}>✦ Featured</span>}
+          {discounted&&<span className={`badge bg-red-500 text-white ${compactMobile?'max-sm:px-1.5 max-sm:py-0.5 max-sm:text-[9px]':''}`}>{Math.round((1-food.discountPrice!/food.price)*100)}% OFF</span>}
+        </div>
+      </div>
+      <div className={compactMobile?'p-2 sm:p-4':'p-4'}>
+        <div className={`flex items-start justify-between ${compactMobile?'mb-1 gap-1 sm:mb-2 sm:gap-3':'mb-2 gap-3'}`}>
+          <div className="min-w-0"><p className={`font-bold uppercase tracking-wider text-brand-600 ${compactMobile?'text-[9px] sm:text-xs':'text-xs'}`}>{food.category}</p><h3 className={`mt-1 overflow-hidden font-extrabold ${compactMobile?'line-clamp-2 min-h-8 text-[11px] leading-4 sm:min-h-0 sm:text-base sm:leading-normal':'text-base'}`}>{food.name}</h3></div>
+          <span className={`shrink-0 items-center gap-1 font-bold ${compactMobile?'hidden text-sm sm:flex':'flex text-sm'}`}><Star size={14} fill="#f4b740" className="text-amber-400"/>{food.rating}</span>
+        </div>
+        <p className={`text-stone-500 ${compactMobile?'hidden text-sm sm:block':'text-sm'}`}>by {food.seller}</p>
+        <div className={`flex items-center justify-between ${compactMobile?'mt-2 sm:mt-4':'mt-4'}`}>
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1">
+            <span className={`${compactMobile?'text-xs sm:text-lg':'text-lg'} font-extrabold ${discounted?'text-emerald-700':''}`}>৳{discounted?food.discountPrice:food.price}</span>
+            {discounted&&<span className={`${compactMobile?'text-[10px] sm:text-xs':'text-xs'} text-stone-400 line-through`}>৳{food.price}</span>}
+          </div>
+          <span className={`items-center gap-1 text-xs text-stone-500 ${compactMobile?'hidden sm:flex':'flex'}`}><Clock size={14}/>{food.prepMinutes} min</span>
+        </div>
+        <div className={`mt-3 flex-wrap gap-2 ${compactMobile?'hidden sm:flex':'flex'}`}><Badge tone={food.status==='ACTIVE'?'green':food.status==='PRE_ORDER_AVAILABLE'?'purple':food.status==='OUT_OF_STOCK'?'gray':'red'}>{food.status.replaceAll('_',' ')}</Badge>{closed&&<Badge tone="red">Orders closed</Badge>}</div>
+      </div>
+    </Link>
+    <button type="button" aria-label={isSaved?'Unsave product':'Save product'} aria-pressed={isSaved} disabled={toggle.isPending} className={`absolute rounded-full bg-white/90 shadow-sm ${compactMobile?'right-1.5 top-1.5 p-1.5 sm:right-3 sm:top-3 sm:p-2':'right-3 top-3 p-2'}`} onClick={()=>{if(!user){toast.info('Sign in to save products.');return}toggle.mutate()}}><Heart className={compactMobile?'h-3.5 w-3.5 sm:h-[17px] sm:w-[17px]':'h-[17px] w-[17px]'} fill={isSaved?'currentColor':'none'}/></button>
+  </article>;
 }

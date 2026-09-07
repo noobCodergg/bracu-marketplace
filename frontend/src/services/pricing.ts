@@ -1,5 +1,6 @@
 import type { FoodItem,ProductVariant } from '../types';
 export const sellingPrice=(product:FoodItem,variant?:ProductVariant)=>variant?.discountPrice??variant?.price??product.discountPrice??product.price;
+export const regularPrice=(product:FoodItem,variant?:ProductVariant)=>variant?.price??product.price;
 
 export const boostPlans=[
   {days:1,label:'Starter',price:149},

@@ -172,7 +172,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     : "amber"
               }
             >
-              {user.status}
+              {user.status === "FROZEN" ? "ACCOUNT IS FROZEN" : user.status}
             </Badge>
             <img src={user.avatar} className="h-9 w-9 rounded-xl" />
           </div>
