@@ -15,6 +15,7 @@ const analyticsEventSchema=new Schema({
 analyticsEventSchema.index({sellerId:1,createdAt:-1});
 analyticsEventSchema.index({sellerId:1,productId:1,type:1,createdAt:-1});
 analyticsEventSchema.index({visitorId:1,productId:1,type:1,createdAt:-1});
-analyticsEventSchema.index({createdAt:1},{expireAfterSeconds:7*24*60*60});
+// Retain enough traffic history for the 30- and 90-day premium reports.
+analyticsEventSchema.index({createdAt:1},{expireAfterSeconds:90*24*60*60});
 analyticsEventSchema.index({visitorId:1,productId:1,type:1,eventBucket:1},{unique:true,partialFilterExpression:{visitorId:{$type:'string'},eventBucket:{$type:'string'}}});
 export const AnalyticsEventModel=model('AnalyticsEvent',analyticsEventSchema);

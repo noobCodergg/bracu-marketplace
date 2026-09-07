@@ -780,8 +780,32 @@ function AdvancedPremium({
 }: {
   data: Awaited<ReturnType<typeof amazonPremiumService.get>>;
 }) {
+  const priorities = [
+    data.orderAnalytics.pending > 0
+      ? { title: `${data.orderAnalytics.pending} pending order${data.orderAnalytics.pending === 1 ? "" : "s"}`, detail: "Respond quickly to protect your acceptance rate.", to: "/seller/orders?status=PENDING", action: "Review orders" }
+      : null,
+    data.alerts[0]
+      ? { title: data.alerts[0].title, detail: data.alerts[0].action, to: "/seller/foods", action: "Manage products" }
+      : null,
+    data.inventory.find((item) => item.reorderQuantity > 0)
+      ? { title: "Inventory needs attention", detail: "Update stock before forecast demand causes missed sales.", to: "/seller/foods", action: "Update inventory" }
+      : null,
+  ].filter((item): item is NonNullable<typeof item> => item !== null).slice(0, 3);
   return (
     <section className="mt-6 space-y-6">
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+        <h3 className="text-lg font-extrabold text-emerald-950">What to do today</h3>
+        <p className="mt-1 text-sm text-emerald-800">Your highest-priority actions, based on current marketplace data.</p>
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          {priorities.length ? priorities.map((item) => (
+            <div className="rounded-xl bg-white p-4 shadow-sm" key={item.title}>
+              <b>{item.title}</b>
+              <p className="mt-1 text-sm text-stone-500">{item.detail}</p>
+              <Link className="mt-3 inline-block text-sm font-extrabold text-brand-700" to={item.to}>{item.action} →</Link>
+            </div>
+          )) : <div className="rounded-xl bg-white p-4 shadow-sm"><b>No urgent action</b><p className="mt-1 text-sm text-stone-500">Your orders, listings and inventory have no critical alerts.</p></div>}
+        </div>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
           label="Net revenue"

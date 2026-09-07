@@ -8,6 +8,7 @@ import {app} from '../app.js';
 import {env} from '../config/env.js';
 import {UserModel} from '../models/User.js';
 import {ProductModel} from '../models/Product.js';
+import {CompanyPaymentModel} from '../models/CompanyPayment.js';
 import {startOrderNotificationWorker} from '../services/orderNotifications.js';
 
 const databaseName='bracu_browser_'+randomUUID().replaceAll('-','');
@@ -20,6 +21,7 @@ const [seller]=await UserModel.create([
  {name:'Other Seller',email:'other@browser.test',role:'SELLER',passwordHash},
 ]);
 await ProductModel.create(Array.from({length:6},(_,index)=>({sellerId:seller!._id,seller:'Fixture Seller',name:`Campus Notebook ${index+1}`,description:'A durable campus notebook for everyday class notes and study.',category:'Stationery',subcategory:'Notebooks',price:80+index*20,quantity:10,status:'ACTIVE' as const,images:['https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500'],variants:[{price:100+index*20,discountPrice:80+index*20,costPrice:50,packagingCost:5,otherCost:0,quantity:10}],prepMinutes:0,spicy:0})));
+await CompanyPaymentModel.create({reference:`browser-premium-${databaseName}`,buyerEmail:seller!.email,product:'PREMIUM_ANALYTICS',amount:499,status:'SUCCEEDED',currency:'BDT',directCost:0,paidAt:new Date(),userId:seller!._id});
 const harness=express(),stopWorker=startOrderNotificationWorker();let closing=false;
 const server=createServer(harness);
 async function shutdown(){if(closing)return;closing=true;stopWorker();server.closeAllConnections();server.close();if(mongoose.connection.name!==databaseName||!/^bracu_browser_[a-f0-9]{32}$/.test(databaseName))throw Error('Refusing unsafe database cleanup');await mongoose.connection.dropDatabase();await mongoose.disconnect();process.exit(0)}

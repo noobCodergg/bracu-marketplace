@@ -8,3 +8,5 @@ vite.config.d.ts
 
 .vercel
 .env*
+test-results/
+playwright-report/

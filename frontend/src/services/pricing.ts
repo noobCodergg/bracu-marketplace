@@ -7,4 +7,4 @@ export const boostPlans=[
   {days:30,label:'Pro',price:1499},
 ] as const;
 
-export const analyticsPlan={id:'SELLER_ANALYTICS_MONTHLY',days:30,label:'Monthly analytics',price:999} as const;
+export const analyticsPlan={id:'SELLER_ANALYTICS_MONTHLY',days:30,label:'Monthly analytics',price:499} as const;
