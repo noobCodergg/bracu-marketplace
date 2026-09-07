@@ -1,6 +1,7 @@
 import {accountRouter} from './account.js';
 import {adminMarketplaceRouter,platformRouter} from './adminMarketplace.js';
 import {Router} from 'express';
+import mongoose from 'mongoose';
 import {adminAnalyticsRouter} from './adminAnalytics.js';
 import {authRouter} from './auth.js';
 import {sellerApplicationRouter} from './sellerApplications.js';
@@ -40,6 +41,15 @@ apiRouter.use('/notifications',notificationRouter);
 apiRouter.use('/reports',reportRouter);
 if(env.NODE_ENV!=='production')apiRouter.use('/admin/load-tests',loadTestRouter);
 
-apiRouter.get('/health',(_req,res)=>{
-  res.json({success:true,message:'B Market API is running',timestamp:new Date().toISOString()});
+apiRouter.get('/health',async(_req,res)=>{
+  const started=performance.now();
+  try{
+    if(mongoose.connection.readyState!==1||!mongoose.connection.db)throw Error('Database is not connected');
+    await mongoose.connection.db.admin().ping();
+    res.setHeader('Cache-Control','no-store');
+    res.json({success:true,message:'B Market API and database are running',database:'AVAILABLE',databaseLatencyMs:Math.round(performance.now()-started),timestamp:new Date().toISOString()});
+  }catch{
+    res.setHeader('Cache-Control','no-store');
+    res.status(503).json({success:false,message:'Database health check failed',database:'UNAVAILABLE',timestamp:new Date().toISOString()});
+  }
 });
