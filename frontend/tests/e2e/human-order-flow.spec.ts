@@ -43,6 +43,14 @@ test.describe.serial('human marketplace and order journey',()=>{
   test('a buyer signs in, adds a product, and places an order',async({browser})=>{
     buyerContext=await browser.newContext({viewport:{width:390,height:844}});const page=await buyerContext.newPage();
     await login(page,'buyer@browser.test','/buyer/dashboard');
+    await page.getByRole('button',{name:'Notifications'}).click();
+    const notificationPanel=page.getByRole('dialog',{name:'Notifications panel'});
+    await expect(notificationPanel).toBeVisible();
+    const notificationBox=await notificationPanel.boundingBox();
+    expect(notificationBox).not.toBeNull();
+    expect(notificationBox!.x).toBeGreaterThanOrEqual(0);
+    expect(notificationBox!.x+notificationBox!.width).toBeLessThanOrEqual(390);
+    await page.getByRole('button',{name:'Notifications'}).click();
     await page.goto('/foods');
     await page.getByText('Campus Notebook 1',{exact:true}).click();
     await page.getByRole('button',{name:/Add selected variant/}).click();
